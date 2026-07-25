@@ -55,6 +55,10 @@
   .video-box.vertical{ aspect-ratio:9/16; max-width:300px; margin:0 auto; }
   .video-box iframe{ width:100%; height:100%; border:0; display:block; }
   .video-placeholder{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-family:'Baloo 2',sans-serif; font-size:1rem; text-align:center; gap:0.5rem; padding:1rem; background:repeating-linear-gradient(135deg, #12111f, #12111f 12px, #1c1a30 12px, #1c1a30 24px); }
+  .video-placeholder.alert{ background:repeating-linear-gradient(135deg, #4a1414, #4a1414 12px, #5c1a1a 12px, #5c1a1a 24px); }
+  .video-placeholder .icon{ font-size:2.1rem; }
+  .video-placeholder .msg{ font-size:1.15rem; }
+  .video-placeholder .sub{ opacity:.75; font-size:0.82rem; font-family:'Nunito',sans-serif; font-weight:700; }
   .video-caption{ margin-top:0.8rem; text-align:center; font-family:'Baloo 2',sans-serif; font-size:1.05rem; color:var(--accent,#3DA9FC); }
   .progress-track{ margin-top:0.7rem; height:8px; border-radius:99px; background:#EDEAFB; overflow:hidden; }
   .progress-fill{ height:100%; width:0%; background:var(--accent,#3DA9FC); border-radius:99px; }
@@ -134,16 +138,16 @@
    vertical:true para que se vea en su formato correcto sin recortes.
 ========================================================================= */
 const INTEGRANTES = [
-  { key:'jenny', nombre:'Jenny Clavo', color:'#3DA9FC', eyebrow:'Parte 1 · s. XVII–XVIII', titulo:'Corriente Moderna e Ilustrada', videoId:'', vertical:false, type:'bullets',
+  { key:'jenny', nombre:'Jenny Clavo', color:'#3DA9FC', eyebrow:'Parte 1 · s. XVII–XVIII', titulo:'Corriente Moderna e Ilustrada', videoId:'t7LWbXJzEeE', vertical:true, type:'bullets',
     bullets:['Rompe con la enseñanza memorística','La razón y la experiencia como guía','El niño ya no es un "adulto pequeño"','Se respeta su desarrollo natural','Nace la pedagogía científica'] },
-  { key:'braulio', nombre:'Braulio Tuanama', color:'#FF6B6B', eyebrow:'Parte 2 · Los precursores', titulo:'Comenio y Locke', videoId:'', vertical:false, type:'thinkers',
+  { key:'braulio', nombre:'Braulio Tuanama', color:'#FF6B6B', eyebrow:'Parte 2 · Los precursores', titulo:'Comenio y Locke', videoId:'', vertical:false, noShare:true, type:'thinkers',
     thinkers:[{nombre:'Comenio', dates:'1592–1670', tag:'Padre de la didáctica moderna · educación para todos'},{nombre:'Locke', dates:'1632–1704', tag:'La mente, una hoja en blanco · forma el carácter'}] },
-  { key:'shirley', nombre:'Shirley Saldaña', color:'#8B5CF6', eyebrow:'Parte 3 · El giro hacia el niño', titulo:'Rousseau, Pestalozzi y Herbart', videoId:'', vertical:false, type:'thinkers',
+  { key:'shirley', nombre:'Shirley Saldaña', color:'#8B5CF6', eyebrow:'Parte 3 · El giro hacia el niño', titulo:'Rousseau, Pestalozzi y Herbart', videoId:'lsilCS2fqJ4', vertical:true, type:'thinkers',
     thinkers:[{nombre:'Rousseau', dates:'1712–1778', tag:'Respeta las etapas del niño'},{nombre:'Pestalozzi', dates:'1746–1827', tag:'Cabeza, corazón y manos'},{nombre:'Herbart', dates:'1776–1841', tag:'La pedagogía se hace ciencia'}],
     roles:[{label:'Estudiante', tag:'explora y descubre'},{label:'Docente', tag:'guía, no autoridad'}] },
   { key:'noemi', nombre:'Noemi Quispe', color:'#22C55E', eyebrow:'Parte 4 · Legado', titulo:'Aportes a la educación', videoId:'v9EzPbdlctE', vertical:true, type:'bullets',
     bullets:['Sistema escolar por grados — Comenio','El ambiente forma al niño — Locke','Currículo según la edad — Rousseau','Educación integral — Pestalozzi','Base científica de enseñar — Herbart'] },
-  { key:'freddy', nombre:'Freddy Nogueira', color:'#FFA630', eyebrow:'Parte 5 · Hoy', titulo:'Esto sigue vivo en el aula', videoId:'', vertical:false, type:'bullets',
+  { key:'freddy', nombre:'Freddy Nogueira', color:'#FFA630', eyebrow:'Parte 5 · Hoy', titulo:'Esto sigue vivo en el aula', videoId:'NZI5RT-GrXY', vertical:false, type:'bullets',
     bullets:['Material visual y manipulable','Currículos organizados por edad','Aprendizaje por proyectos','Montessori y Waldorf','Evaluación según el ritmo del niño'] }
 ];
 
@@ -233,8 +237,10 @@ function loadAct(idx, autoplay){
         }
       });
     }
+  } else if (it.noShare){
+    frame.innerHTML = `<div class="video-placeholder alert"><span class="icon">⚠️</span><span class="msg">No compartió su video</span><span class="sub">${it.nombre}</span></div>`;
   } else {
-    frame.innerHTML = `<div class="video-placeholder">🎬<br>Video pendiente<br><span style="opacity:.7">pega el link de ${it.nombre} en INTEGRANTES[]</span></div>`;
+    frame.innerHTML = `<div class="video-placeholder"><span class="icon">🎬</span><span class="msg">Video pendiente</span><span class="sub">pega el link de ${it.nombre} en INTEGRANTES[]</span></div>`;
   }
 }
 
