@@ -36,6 +36,7 @@
   #playBtn:hover{ transform:translateY(-3px) scale(1.04); }
   #playBtn:active{ transform:translateY(2px); }
   #playBtn svg{ width:28px; height:28px; margin-left:5px; fill:#fff; }
+  #startHint{ margin-top:0.9rem; font-size:0.9rem; color:var(--ink-soft); font-weight:800; font-family:'Baloo 2',sans-serif; }
 
   /* ---------- STAGE ---------- */
   #stage{ position:fixed; inset:0; display:none; background:var(--bg); }
@@ -75,6 +76,7 @@
   .video-placeholder .icon{ font-size:2.1rem; }
   .video-placeholder .msg{ font-size:1.15rem; }
   .video-placeholder .sub{ opacity:.75; font-size:0.82rem; font-family:'Nunito',sans-serif; font-weight:700; }
+  .video-wrap{ position:relative; }
   .video-caption{ margin-top:0.6rem; text-align:center; font-family:'Baloo 2',sans-serif; font-size:0.92rem; color:#F4EEDD; }
   .progress-track{ margin-top:0.5rem; height:5px; border-radius:99px; background:rgba(255,255,255,0.14); overflow:hidden; }
   .progress-fill{ height:100%; width:0%; background:var(--accent,#3DA9FC); border-radius:99px; }
@@ -122,6 +124,9 @@
   #refToggle{ margin-top:1.8rem; background:#fff; border:none; font-family:'Baloo 2',sans-serif; font-size:0.85rem; padding:0.6rem 1.1rem; border-radius:999px; cursor:pointer; color:var(--ink-soft); box-shadow:0 3px 0 rgba(43,42,76,0.08); }
   #refBox{ display:none; margin-top:1.1rem; max-width:560px; font-size:0.82rem; color:var(--ink-soft); text-align:left; line-height:1.7; font-weight:600; }
   #refBox.show{ display:block; }
+  .closing-actions{ margin-top:1.6rem; }
+  .pill-btn{ font-family:'Baloo 2',sans-serif; font-size:0.9rem; color:#fff; background:linear-gradient(135deg,#3DA9FC,#8B5CF6); border:none; padding:0.75rem 1.4rem; border-radius:999px; cursor:pointer; box-shadow:0 4px 0 rgba(43,42,76,0.12); transition:transform .15s ease; }
+  .pill-btn:hover{ transform:translateY(-2px); }
 
   @media (max-width:860px){
     .act{ grid-template-columns:1fr; padding-top:64px; }
@@ -136,6 +141,7 @@
   <p class="sub">La transición hacia una educación centrada en el niño</p>
   <div class="integrantes-list" id="chipList"></div>
   <button id="playBtn" aria-label="Iniciar"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+  <div id="startHint">Presiona play para ver la exposición</div>
 </div>
 
 <div id="stage">
@@ -157,6 +163,11 @@
     Pestalozzi, J. H. (2009). <i>Cómo Gertrudis enseña a sus hijos</i>. Biblioteca Nueva. (Original 1801)<br>
     Herbart, J. F. (1935). <i>Pedagogía general derivada del fin de la educación</i>. Ediciones de La Lectura. (Original 1806)
   </div>
+  <div class="closing-actions">
+    <button id="replayBtn" class="pill-btn">🔁 Volver a ver la exposición</button>
+  </div>
+  <div class="kicker" style="margin-top:1.5rem;">O ve directo a un integrante</div>
+  <div class="roster" id="closingRoster"></div>
 </div>
 
 <script>
@@ -240,7 +251,9 @@ INTEGRANTES.forEach((it, idx) => {
             <span class="mtitle">Videollamada — Grupo 3</span>
           </div>
           <div class="mac-screen-body">
-            <div class="video-box${it.vertical?' vertical':''}" id="videoFrame-${idx}"></div>
+            <div class="video-wrap">
+              <div class="video-box${it.vertical?' vertical':''}" id="videoFrame-${idx}"></div>
+            </div>
             <div class="video-caption">${it.nombre}</div>
             <div class="progress-track"><div class="progress-fill" id="fill-${idx}"></div></div>
             <div class="roster">${rosterHTML}</div>
@@ -254,11 +267,15 @@ INTEGRANTES.forEach((it, idx) => {
   actsContainer.appendChild(act);
 });
 
-let ytApiReady = false, player = null, progressInterval = null, current = -1;
+let ytApiReady = false, player = null, progressInterval = null, placeholderTimer = null, current = -1;
 const tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
 window.onYouTubeIframeAPIReady = () => { ytApiReady = true; };
 
-function destroyPlayer(){ if (progressInterval) clearInterval(progressInterval); if (player && player.destroy){ player.destroy(); player = null; } }
+function destroyPlayer(){
+  if (progressInterval) clearInterval(progressInterval);
+  if (placeholderTimer) clearTimeout(placeholderTimer);
+  if (player && player.destroy){ player.destroy(); player = null; }
+}
 
 function loadAct(idx, autoplay){
   destroyPlayer();
@@ -304,9 +321,15 @@ function loadAct(idx, autoplay){
       });
     }
   } else if (it.noShare){
-    frame.innerHTML = `<div class="video-placeholder alert"><span class="icon">⚠️</span><span class="msg">No compartió su video</span><span class="sub">${it.nombre}</span></div>`;
+    frame.innerHTML = `<div class="video-placeholder alert"><span class="icon">⚠️</span><span class="msg">${it.nombre} no envió su video</span><span class="sub">Seguimos con el grupo</span></div>`;
+    fill.style.transition = 'width 5s linear';
+    requestAnimationFrame(()=> requestAnimationFrame(()=> fill.style.width = '100%'));
+    placeholderTimer = setTimeout(()=> goTo(idx+1, true), 5000);
   } else {
-    frame.innerHTML = `<div class="video-placeholder"><span class="icon">🎬</span><span class="msg">Video pendiente</span><span class="sub">pega el link de ${it.nombre} en INTEGRANTES[]</span></div>`;
+    frame.innerHTML = `<div class="video-placeholder"><span class="icon">🎬</span><span class="msg">Video no disponible</span><span class="sub">pega el link de ${it.nombre} en INTEGRANTES[]</span></div>`;
+    fill.style.transition = 'width 5s linear';
+    requestAnimationFrame(()=> requestAnimationFrame(()=> fill.style.width = '100%'));
+    placeholderTimer = setTimeout(()=> goTo(idx+1, true), 5000);
   }
 }
 
@@ -321,11 +344,28 @@ function showClosing(){
   document.getElementById('closing').classList.add('active');
 }
 
-document.getElementById('playBtn').addEventListener('click', () => {
-  document.getElementById('intro').style.display = 'none';
+document.getElementById('replayBtn').addEventListener('click', () => {
+  document.getElementById('closing').classList.remove('active');
   document.getElementById('stage').classList.add('active');
   goTo(0, true);
 });
+document.getElementById('closingRoster').innerHTML = INTEGRANTES.map((p,i)=>
+  `<button class="roster-item" data-goto="${i}" title="${p.nombre}"><span class="roster-avatar" style="background:${p.color}; opacity:1;">${p.nombre[0]}</span></button>`
+).join('');
+document.getElementById('closingRoster').addEventListener('click', (e) => {
+  const btn = e.target.closest('.roster-item'); if (!btn) return;
+  document.getElementById('closing').classList.remove('active');
+  document.getElementById('stage').classList.add('active');
+  goTo(parseInt(btn.dataset.goto), true);
+});
+function startExposition(){
+  if (window.__started) return;
+  window.__started = true;
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('stage').classList.add('active');
+  goTo(0, true);
+}
+document.getElementById('playBtn').addEventListener('click', startExposition);
 document.getElementById('prevBtn').addEventListener('click', () => goTo(current-1, true));
 document.getElementById('nextBtn').addEventListener('click', () => goTo(current+1, true));
 actsContainer.addEventListener('click', (e) => {
